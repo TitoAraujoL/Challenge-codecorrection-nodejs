@@ -6,7 +6,13 @@ const app = express();
 
 app.use(express.json());
 
-const repositories = [];
+const repositories = [{
+  id: 'f6b5cac9-d24e-4db3-9a99-97521e793bef',
+  title: 'Umbriel',
+  url: 'https://github.com/Rocketseat/umbriel',
+  techs: [ 'Node', 'Express', 'TypeScript' ],
+  likes: 0
+}];
 
 app.get("/repositories", (request, response) => {
   return response.json(repositories);
@@ -23,20 +29,29 @@ app.post("/repositories", (request, response) => {
     likes: 0
   };
 
-  return response.json(repository);
+  repositories.push(repository)
+
+  return response.status(201).json(repository);
 });
 
-app.put("/repositories/:id", (request, response) => {
+app.put("/repositories/:id", (request, response) => { 
   const { id } = request.params;
-  const updatedRepository = request.body;
+  const updateRepo = request.body
 
-  repositoryIndex = repositories.findindex(repository => repository.id === id);
+  repositoryIndex = repositories.findIndex(repository => repository.id === id);
 
   if (repositoryIndex < 0) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
-  const repository = { ...repositories[repositoryIndex], ...updatedRepository };
+  if(updateRepo.likes){
+    updateRepo.likes = repositories[repositoryIndex].likes
+  }
+
+  const repository = {
+    ...repositories[repositoryIndex],
+    ...updateRepo
+  }
 
   repositories[repositoryIndex] = repository;
 
@@ -48,7 +63,7 @@ app.delete("/repositories/:id", (request, response) => {
 
   repositoryIndex = repositories.findIndex(repository => repository.id === id);
 
-  if (repositoryIndex > 0) {
+  if (repositoryIndex < 0) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
@@ -59,16 +74,16 @@ app.delete("/repositories/:id", (request, response) => {
 
 app.post("/repositories/:id/like", (request, response) => {
   const { id } = request.params;
+  
+  const repository = repositories.find(repository => repository.id === id);
 
-  repositoryIndex = repositories.findIndex(repository => repository.id === id);
-
-  if (repositoryIndex < 0) {
+  if (!repository) {
     return response.status(404).json({ error: "Repository not found" });
   }
+   
+  repository.likes++
 
-  const likes = ++repositories[repositoryIndex].likes;
-
-  return response.json('likes');
+  return response.json(repository);
 });
 
 module.exports = app;
